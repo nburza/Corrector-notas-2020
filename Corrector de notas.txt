@@ -1,0 +1,106 @@
+ class Examen {
+	List<Pregunta> preguntas;
+	CriterioPuntaje criterioPuntaje;
+	CriterioRestadoPorPreguntaIncorrecta criterioRestadoPorPreguntaIncorrecta;
+	double notaAprobatoriaMinima;
+	String alumno;
+
+	double maximoPuntajePosible()
+		return this.preguntas.sum(p => p.getPesoEspecifico())
+
+	double getPuntajeParcial()
+		return this.preguntas.sum(p => p.getPuntaje(criterioRestadoPorPreguntaIncorrecta))
+
+	double getPuntajeFinal()
+		return this.criterioPuntaje.getPuntaje(this.getPuntajeParcial(), this.maximoPuntajePosible()) 
+
+	bool estaAprobado()
+		return this.getPuntajeFinal() >= notaAprobatoriaMinima
+			&& todas las preguntas necesarias estan correctas
+}
+
+interface CriterioPuntaje {
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+}
+
+interface CriterioSimple implements CriterioPuntaje {
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+}
+
+class RestarNPuntos implements CriterioSimple {
+	double n
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+		return max(puntajeParcial - n, 0) 
+}
+
+class ReglaDeTres implements CriterioSimple {
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+		return (puntajeParcial * 10) / maximoPuntajePosible
+}
+
+class TablaConversion implements CriterioSimple {
+	HashTable<double,double> tablaDeConversion;
+
+	void agregarConversion(double puntajeOriginal, double puntajeConvertido)
+		tablaDeConversion.put(puntajeOriginal, puntajeConvertido)
+	
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+		return tablaDeConversion.get(puntajeParcial)
+}
+	
+
+interface CriterioCompuesto implements CriterioPuntaje {
+	List<CriterioSimple> criterios;
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+}
+
+class NotaMasAlta implements CriterioCompuesto {
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+		return max(criterios.foreach(c => c.getPuntaje(puntajeParcial, maximoPuntajePosible))
+}
+
+class NotaPromedio implements CriterioCompuesto {
+	double getPuntaje(double puntajeParcial, double maximoPuntajePosible)
+		return promedio(criterios.foreach(c => c.getPuntaje(puntajeParcial, maximoPuntajePosible))
+}
+
+interface CriterioRestadoPorPreguntaIncorrecta {
+	double getCuantoResto(double pesoEscifico)
+}
+
+class NoResto implements CriterioRestadoPorPreguntaIncorrecta {
+	double getCuantoResto(double pesoEscifico)
+		return 0
+}
+
+class RestoMitad implements CriterioRestadoPorPreguntaIncorrecta {
+	double getCuantoResto(double pesoEscifico)
+		return - pesoEspecifico / 2
+}
+
+class RestoUno implements CriterioRestadoPorPreguntaIncorrecta {
+	double getCuantoResto(double pesoEscifico)
+		return - 1
+}
+
+class Pregunta {
+	String preguntaAMostrar;
+	List<String> opciones;
+	String respuestaCorrecta;
+
+	double pesoEspecifico;
+	bool esPreguntaNecesaria;
+	String respuestaAlumno
+	
+	void responder(String respuestaAlumno)
+		this.respuestaAlumno = respuestaAlumno
+
+	bool esRespuestaCorrecta()
+		return String.equals(respuestaCorrecta, respuestaAlumno)
+
+	double getPuntaje(CriterioRestadoPorPreguntaIncorrecta criterio)
+		if(this.esRespuestaCorrecta())
+			return this.pesoEspecifico
+		else
+			return criterio.getCuantoResto(this.pesoEscifico)
+}
